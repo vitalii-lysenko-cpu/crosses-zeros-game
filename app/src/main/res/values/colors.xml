@@ -7,8 +7,10 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="sign_color">#575859</color>
-    <color name="grid_color">#0C5216</color>
-    <color name="cell_color">#009688</color>
-    <color name="win_cell_color">#BF0645</color>
+    <color name="sign_color">#060686</color>
+    <color name="greeting_color">#045FCA</color>
+    <color name="cell_color">#E7DDDD</color>
+    <color name="win_cell_color">#EC7F7F</color>
+    <color name="greeting_background">#B4ECF1</color>
+    <color name="grid_background_color">#6D6C6F</color>
 </resources>

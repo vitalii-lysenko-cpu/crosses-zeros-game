@@ -1,5 +1,7 @@
 package com.example.crosses_zeros.ui.presentation.gameboard
 
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,11 +12,14 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.crosses_zeros.R
 import com.example.crosses_zeros.functionality.SignState
@@ -24,28 +29,60 @@ import com.example.crosses_zeros.ui.components.Sign
 fun GameBoard(
     gameBoardViewModel: GameBoardViewModel = hiltViewModel(),
 ) {
-    val state: Data by gameBoardViewModel.gameState.collectAsState()
+    val state: GameBoardState by gameBoardViewModel.gameState.collectAsState()
     GameBoard(
         state = state,
         onClick = gameBoardViewModel::onChangeSign,
         onStartNewGame = gameBoardViewModel::onStartNewGame,
+        saveUrl = gameBoardViewModel::saveLastUrl,
     )
 }
 
+
 @Composable
 fun GameBoard(
-    state: Data,
+    state: GameBoardState,
     onClick: (Int) -> Unit,
     onStartNewGame: () -> Unit,
+    saveUrl: (String?)-> Unit,
 ) {
-    Column() {
+    if (state.response != 404) {
+        Game(state, onClick, onStartNewGame)
+    } else {
+        MyContent(state, saveUrl)
+    }
+}
+
+@Composable
+fun Game(
+    state: GameBoardState,
+    onClick: (Int) -> Unit,
+    onStartNewGame: () -> Unit
+) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp)
+                .background(color = colorResource(id = R.color.greeting_background)),
+            contentAlignment = Alignment.Center,
+
+            ) {
+            Text(
+                modifier = Modifier.padding(24.dp),
+                text = "WELCOME IN GAME",
+                fontSize = 36.sp,
+                color = colorResource(id = R.color.greeting_color),
+                textAlign = TextAlign.Center,
+            )
+        }
         LazyVerticalGrid(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .background(color = colorResource(id = R.color.grid_background_color)),
             columns = GridCells.Fixed(3)
         ) {
             items(state.cellList.size) {
-
                 Box(
                     modifier = Modifier
                         .padding(2.dp)
@@ -87,21 +124,29 @@ fun GameBoard(
             }
         }
         if (state.gameEnd) {
-            Button(onClick = onStartNewGame,
-                content = { Text(text = "New Game") })
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                onClick = onStartNewGame,
+            ) { Text(text = "New Game") }
         }
     }
 }
 
-
-@Preview
 @Composable
-fun GameBoardPreview() {
-    GameBoard(
-//        state = GameState.Data(
-//            gameEnd = false,
-//            cellContent = emptyList()
-//        ),
-//        onClick = {}
-    )
+fun MyContent(
+    state: GameBoardState,
+    saveUrl: (String?)-> Unit
+) {
+    AndroidView(factory = {
+        WebView(it).apply {
+            webViewClient = object : WebViewClient() {
+                override fun onPageFinished(view: WebView?, url: String?) {
+                    super.onPageFinished(view, url)
+                    saveUrl(url)
+                }
+            }
+            loadUrl(state.url.url)
+        }
+    })
 }

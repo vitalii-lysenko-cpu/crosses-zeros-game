@@ -2,49 +2,79 @@ package com.example.crosses_zeros.ui.presentation.gameboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.crosses_zeros.functionality.CheckConnectionUseCase
+import com.example.crosses_zeros.functionality.GetErrorResponseUseCase
 import com.example.crosses_zeros.functionality.SignState
+import com.example.crosses_zeros.functionality.data.entity.LastUrl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 @HiltViewModel
-class GameBoardViewModel @Inject constructor() : ViewModel() {
-    private val mutableGameBoardState: MutableStateFlow<List<SignState>> = MutableStateFlow(
-        listOf(
-            SignState.EMPTY,
-            SignState.EMPTY,
-            SignState.EMPTY,
-            SignState.EMPTY,
-            SignState.EMPTY,
-            SignState.EMPTY,
-            SignState.EMPTY,
-            SignState.EMPTY,
-            SignState.EMPTY,
-        )
+class GameBoardViewModel @Inject constructor(
+    private val getErrorResponseUseCase: GetErrorResponseUseCase,
+    private val checkConnectionUseCase: CheckConnectionUseCase,
+) : ViewModel() {
+    private val emptyList = listOf(
+        SignState.EMPTY,
+        SignState.EMPTY,
+        SignState.EMPTY,
+        SignState.EMPTY,
+        SignState.EMPTY,
+        SignState.EMPTY,
+        SignState.EMPTY,
+        SignState.EMPTY,
+        SignState.EMPTY,
     )
+    private val mutableGameBoardState: MutableStateFlow<List<SignState>> =
+        MutableStateFlow(emptyList)
     private val gameEnd: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val crossedOutCells: MutableStateFlow<List<Int>> = MutableStateFlow(emptyList())
-    val gameState: StateFlow<Data> =
+    private val lastUrl: MutableStateFlow<LastUrl> =
+        MutableStateFlow(LastUrl("https://dok.ua", 0))
+    private var response: MutableStateFlow<Int> = MutableStateFlow(0)
+
+
+    init {
+        viewModelScope.launch {
+            if (checkConnectionUseCase.invoke()) {
+                response.emit(getErrorResponseUseCase.invoke())
+            } else {
+                response.emit(404)
+            }
+        }
+    }
+
+    val gameState: StateFlow<GameBoardState> =
         combine(
             gameEnd,
             crossedOutCells,
+            lastUrl,
+            response,
             mutableGameBoardState
         ) { gameEnd,
             crossedOutCells,
+            lastUrl,
+            response,
             stepsList ->
-            Data(
+            GameBoardState(
                 cellList = stepsList,
                 gameEnd = gameEnd,
                 crossedOutCells = crossedOutCells,
+                response = response,
+                url = lastUrl,
             )
         }.stateIn(
             started = SharingStarted.Lazily,
             scope = viewModelScope,
-            initialValue = Data(
+            initialValue = GameBoardState(
                 cellList = mutableGameBoardState.value,
                 gameEnd = gameEnd.value,
-                crossedOutCells = crossedOutCells.value
+                crossedOutCells = crossedOutCells.value,
+                response = response.value,
+                url = lastUrl.value
             )
         )
 
@@ -100,49 +130,67 @@ class GameBoardViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    private fun secondDiagonal() = mutableGameBoardState.value[2] == element &&
-            mutableGameBoardState.value[4] == element &&
-            mutableGameBoardState.value[6] == element
-    private fun firstDiagonal() = mutableGameBoardState.value[0] == element &&
-            mutableGameBoardState.value[4] == element &&
-            mutableGameBoardState.value[8] == element
-    private fun thirdColumn() = mutableGameBoardState.value[2] == element &&
-            mutableGameBoardState.value[5] == element &&
-            mutableGameBoardState.value[8] == element
+    private fun secondDiagonal() =
+        mutableGameBoardState.value[2] == element &&
+                mutableGameBoardState.value[4] == element &&
+                mutableGameBoardState.value[6] == element
 
-    private fun secondColumn() = mutableGameBoardState.value[1] == element &&
-            mutableGameBoardState.value[4] == element &&
-            mutableGameBoardState.value[7] == element
+    private fun firstDiagonal() =
+        mutableGameBoardState.value[0] == element &&
+                mutableGameBoardState.value[4] == element &&
+                mutableGameBoardState.value[8] == element
 
-    private fun firstColumn() = mutableGameBoardState.value[0] == element &&
-            mutableGameBoardState.value[3] == element &&
-            mutableGameBoardState.value[6] == element
+    private fun thirdColumn() =
+        mutableGameBoardState.value[2] == element &&
+                mutableGameBoardState.value[5] == element &&
+                mutableGameBoardState.value[8] == element
 
-    private fun thirdRow() = mutableGameBoardState.value[6] == element &&
-            mutableGameBoardState.value[7] == element &&
-            mutableGameBoardState.value[8] == element
+    private fun secondColumn() =
+        mutableGameBoardState.value[1] == element &&
+                mutableGameBoardState.value[4] == element &&
+                mutableGameBoardState.value[7] == element
 
-    private fun secondRow() = mutableGameBoardState.value[3] == element &&
-            mutableGameBoardState.value[4] == element &&
-            mutableGameBoardState.value[5] == element
+    private fun firstColumn() =
+        mutableGameBoardState.value[0] == element &&
+                mutableGameBoardState.value[3] == element &&
+                mutableGameBoardState.value[6] == element
 
-    private fun firstRow() = mutableGameBoardState.value[0] == element &&
-            mutableGameBoardState.value[1] == element &&
-            mutableGameBoardState.value[2] == element
+    private fun thirdRow() =
+        mutableGameBoardState.value[6] == element &&
+                mutableGameBoardState.value[7] == element &&
+                mutableGameBoardState.value[8] == element
+
+    private fun secondRow() =
+        mutableGameBoardState.value[3] == element &&
+                mutableGameBoardState.value[4] == element &&
+                mutableGameBoardState.value[5] == element
+
+    private fun firstRow() =
+        mutableGameBoardState.value[0] == element &&
+                mutableGameBoardState.value[1] == element &&
+                mutableGameBoardState.value[2] == element
 
     fun onStartNewGame() {
         mutableGameBoardState.update {
             val list = it.toMutableList()
-            list.replaceAll { SignState.EMPTY }
+            list.clear()
+            list.addAll(emptyList)
             list.toList()
         }
         crossedOutCells.update {
-            val list=it.toMutableList()
+            val list = it.toMutableList()
             list.clear()
             list.toList()
         }
         element = SignState.X
     }
+
+    fun saveLastUrl(url: String?) {
+        viewModelScope.launch {
+            lastUrl.emit(LastUrl(url ?: "https://google.com", 0))
+        }
+    }
 }
+
 
 
