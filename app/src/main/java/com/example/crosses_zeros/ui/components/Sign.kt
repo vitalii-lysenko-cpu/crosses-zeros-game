@@ -12,11 +12,13 @@ import com.example.crosses_zeros.R
 
 @Composable
 fun Sign(
-    painter: Painter ,
-    alpha: Float ,
-) {SignImpl(
-    painter = painter,
-    alpha = alpha)
+    painter: Painter,
+    alpha: Float,
+) {
+    SignImpl(
+        painter = painter,
+        alpha = alpha
+    )
 }
 
 @Composable
@@ -31,9 +33,12 @@ fun SignImpl(
         modifier = Modifier.alpha(alpha)
     )
 }
+
 @Preview
 @Composable
-fun SingPreview(){
-    Sign(painter = painterResource(id = R.drawable.ic_sing_cross),
-        alpha = 1f )
+fun SingPreview() {
+    Sign(
+        painter = painterResource(id = R.drawable.ic_sing_cross),
+        alpha = 1f
+    )
 }

@@ -13,10 +13,7 @@ class ApiDataSourceImpl @Inject constructor(
     @ApplicationContext
     private val context: Context,
 ) : ApiDataSource {
-
     override suspend fun getErrorResponse(): Int = api.getErrorResponse().code()
-
-//    override suspend fun getLastUrl(): String = api.getErrorResponse().raw().request.url.toString()
 
     override fun checkConnection(): Boolean {
         val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

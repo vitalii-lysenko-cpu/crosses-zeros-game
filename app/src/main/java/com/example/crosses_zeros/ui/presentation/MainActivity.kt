@@ -15,10 +15,8 @@ class MainActivity : ComponentActivity() {
         WebView.setWebContentsDebuggingEnabled(true)
         setContent {
             CrossesZerosTheme {
-               GameBoard()
+                GameBoard()
             }
         }
     }
-
 }
-

@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.kapt'
     id 'com.google.dagger.hilt.android'
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -92,4 +93,5 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
 
     implementation "androidx.datastore:datastore-preferences:1.0.0"
+    implementation 'com.onesignal:OneSignal:[4.0.0, 4.99.99]'
 }

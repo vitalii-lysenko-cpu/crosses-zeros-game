@@ -6,7 +6,7 @@ import javax.inject.Inject
 
 class RepositoryImpl @Inject constructor(
     private val apiDataSource: ApiDataSource
-): Repository {
+) : Repository {
     override suspend fun getErrorResponse(): Int = apiDataSource.getErrorResponse()
 //    override suspend fun getLastUrl(): String = apiDataSource.getLastUrl()
 
