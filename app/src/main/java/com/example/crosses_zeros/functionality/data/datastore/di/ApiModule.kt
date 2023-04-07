@@ -1,4 +1,4 @@
-package com.example.crosses_zeros.functionality.data.di
+package com.example.crosses_zeros.functionality.data.datastore.di
 
 import com.example.crosses_zeros.functionality.data.api.Api
 import com.example.crosses_zeros.functionality.data.api.ApiDataSource

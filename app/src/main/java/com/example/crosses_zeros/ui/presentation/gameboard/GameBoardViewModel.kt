@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.crosses_zeros.functionality.CheckConnectionUseCase
 import com.example.crosses_zeros.functionality.GetErrorResponseUseCase
 import com.example.crosses_zeros.functionality.SignState
-import com.example.crosses_zeros.functionality.data.entity.LastUrl
+import com.example.crosses_zeros.functionality.data.datastore.AppDataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -16,6 +16,7 @@ import javax.inject.Inject
 class GameBoardViewModel @Inject constructor(
     private val getErrorResponseUseCase: GetErrorResponseUseCase,
     private val checkConnectionUseCase: CheckConnectionUseCase,
+    private val dataStore: AppDataStore
 ) : ViewModel() {
     private val emptyList = listOf(
         SignState.EMPTY,
@@ -32,10 +33,7 @@ class GameBoardViewModel @Inject constructor(
         MutableStateFlow(emptyList)
     private val gameEnd: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val crossedOutCells: MutableStateFlow<List<Int>> = MutableStateFlow(emptyList())
-    private val lastUrl: MutableStateFlow<LastUrl> =
-        MutableStateFlow(LastUrl("https://dok.ua", 0))
     private var response: MutableStateFlow<Int> = MutableStateFlow(0)
-
 
     init {
         viewModelScope.launch {
@@ -51,7 +49,7 @@ class GameBoardViewModel @Inject constructor(
         combine(
             gameEnd,
             crossedOutCells,
-            lastUrl,
+            dataStore.readName,
             response,
             mutableGameBoardState
         ) { gameEnd,
@@ -59,7 +57,7 @@ class GameBoardViewModel @Inject constructor(
             lastUrl,
             response,
             stepsList ->
-            GameBoardState(
+            GameBoardState.Data(
                 cellList = stepsList,
                 gameEnd = gameEnd,
                 crossedOutCells = crossedOutCells,
@@ -69,13 +67,7 @@ class GameBoardViewModel @Inject constructor(
         }.stateIn(
             started = SharingStarted.Lazily,
             scope = viewModelScope,
-            initialValue = GameBoardState(
-                cellList = mutableGameBoardState.value,
-                gameEnd = gameEnd.value,
-                crossedOutCells = crossedOutCells.value,
-                response = response.value,
-                url = lastUrl.value
-            )
+            initialValue = GameBoardState.Initial.Loading
         )
 
     fun onChangeSign(elementNumber: Int) {
@@ -183,11 +175,15 @@ class GameBoardViewModel @Inject constructor(
             list.toList()
         }
         element = SignState.X
+        viewModelScope.launch {
+            gameEnd.emit(false)
+        }
     }
 
-    fun saveLastUrl(url: String?) {
+    fun saveLastUrl(url: String) {
         viewModelScope.launch {
-            lastUrl.emit(LastUrl(url ?: "https://google.com", 0))
+            // lastUrl.emit(url)
+            dataStore.saveName(url)
         }
     }
 }

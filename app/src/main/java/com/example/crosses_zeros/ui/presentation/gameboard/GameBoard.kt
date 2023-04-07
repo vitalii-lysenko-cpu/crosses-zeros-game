@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -44,22 +46,30 @@ fun GameBoard(
     state: GameBoardState,
     onClick: (Int) -> Unit,
     onStartNewGame: () -> Unit,
-    saveUrl: (String?)-> Unit,
+    saveUrl: (String) -> Unit,
 ) {
-    if (state.response != 404) {
-        Game(state, onClick, onStartNewGame)
-    } else {
-        MyContent(state, saveUrl)
+    when (state) {
+        is GameBoardState.Initial.Loading -> CircularProgressIndicator(color = Color.Blue)
+        is GameBoardState.Data -> {
+            if (state.response == 404) {
+                Game(state, onClick, onStartNewGame)
+            } else {
+                MyContent(state, saveUrl)
+            }
+        }
     }
 }
 
 @Composable
 fun Game(
-    state: GameBoardState,
+    state: GameBoardState.Data,
     onClick: (Int) -> Unit,
     onStartNewGame: () -> Unit
 ) {
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -126,7 +136,7 @@ fun Game(
         if (state.gameEnd) {
             Button(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth(0.5f),
                 onClick = onStartNewGame,
             ) { Text(text = "New Game") }
         }
@@ -135,18 +145,20 @@ fun Game(
 
 @Composable
 fun MyContent(
-    state: GameBoardState,
-    saveUrl: (String?)-> Unit
+    state: GameBoardState.Data,
+    saveUrl: (String) -> Unit
 ) {
     AndroidView(factory = {
         WebView(it).apply {
             webViewClient = object : WebViewClient() {
-                override fun onPageFinished(view: WebView?, url: String?) {
+                override fun onPageFinished(view: WebView?, url: String) {
                     super.onPageFinished(view, url)
                     saveUrl(url)
                 }
             }
-            loadUrl(state.url.url)
+            loadUrl(state.url)
         }
     })
 }
+
+
