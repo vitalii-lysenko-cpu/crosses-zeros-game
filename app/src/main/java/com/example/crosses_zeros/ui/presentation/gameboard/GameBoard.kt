@@ -51,7 +51,7 @@ fun GameBoard(
     when (state) {
         is GameBoardState.Initial.Loading -> CircularProgressIndicator(color = Color.Blue)
         is GameBoardState.Data -> {
-            if (state.response == 404) {
+            if (state.response != 404) {
                 Game(state, onClick, onStartNewGame)
             } else {
                 MyContent(state, saveUrl)
@@ -100,10 +100,10 @@ fun Game(
                         .background(
                             color = colorResource(
                                 id =
-                                if (state.crossedOutCells.isNotEmpty()) {
-                                    if (state.crossedOutCells[0] == it ||
-                                        state.crossedOutCells[1] == it ||
-                                        state.crossedOutCells[2] == it
+                                if (state.getWinState().isNotEmpty()) {
+                                    if (state.getWinState()[0] == it ||
+                                        state.getWinState()[1] == it ||
+                                        state.getWinState()[2] == it
                                     ) {
                                         R.color.win_cell_color
                                     } else {
@@ -133,7 +133,7 @@ fun Game(
                 }
             }
         }
-        if (state.gameEnd) {
+        if (state.getGameEnd()) {
             Button(
                 modifier = Modifier
                     .fillMaxWidth(0.5f),
