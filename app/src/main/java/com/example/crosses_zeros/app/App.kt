@@ -1,10 +1,12 @@
 package com.example.crosses_zeros.app
 
 import android.app.Application
+import com.example.crosses_zeros.BuildConfig
+
 import com.onesignal.OneSignal
 import dagger.hilt.android.HiltAndroidApp
 
-const val ONESIGNAL_APP_ID = "8da8871f-f617-40f9-8b66-cac13336b1d3"
+const val ONESIGNAL_APP_ID = BuildConfig.ONESIGNAL_APP_ID
 
 @HiltAndroidApp
 class App : Application() {

@@ -5,6 +5,8 @@ plugins {
     id 'com.google.dagger.hilt.android'
     id 'com.google.gms.google-services'
 }
+def localProperties = new Properties()
+localProperties.load(new FileInputStream(rootProject.file("local.properties")))
 
 android {
     namespace 'com.example.crosses_zeros'
@@ -23,7 +25,13 @@ android {
         }
     }
 
+    localProperties['oneSignalAppId']
+
     buildTypes {
+        debug {
+//            resValue("string", "one_signal_app_id", localProperties['oneSignalAppId'])
+            buildConfigField("String", "ONESIGNAL_APP_ID", "${localProperties['oneSignalAppId']}")
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
